@@ -94,8 +94,8 @@
   let animating = false;
   let letterI = 0, letterJ = 0, lines = [];
   let growPhase = 0;
-  const SMALL = '#9a0f29'; // pequeño
-  const LARGE = '#cf1462'; // grande
+  const SMALL = '#9a0f29';
+  const LARGE = '#cf1462';
 
   function clear(){ ctx.clearRect(0,0,W,H); }
   function drawPoints(){
@@ -119,7 +119,6 @@
     ctx.textBaseline = 'middle';
 
     const t = 0.5 + 0.5*Math.sin(growPhase);
-    const brightness = Math.round(170 + 85*t);
 
     // draw heart content
     const linesArr = heartContent.split('\n');
@@ -153,10 +152,12 @@
       }
     }
 
-    growPhase += 0.12; // más fluido
+    growPhase += 0.12;
     const t = 0.5 + 0.5*Math.sin(growPhase);
-    const baseSize = 18;
-    const amplitude = 7;
+
+    // Ajuste de tamaño responsive usando ancho y alto
+    const baseSize = Math.min(W,H) / 30;
+    const amplitude = baseSize / 2;
     const size = baseSize + amplitude * t;
     const color = mixColor(SMALL, LARGE, t);
 
@@ -194,9 +195,10 @@
     growPhase = 0;
   });
 
+  // Responsive canvas
   function resizeCanvas(){
-    W = Math.min(window.innerWidth - 40, 900);
-    H = Math.min(window.innerHeight - 120, 700);
+    W = Math.min(window.innerWidth * 0.9, 900);
+    H = Math.min(window.innerHeight * 0.7, 700);
     CX = W/2; CY = H/2;
     canvas.width = W;
     canvas.height = H;
