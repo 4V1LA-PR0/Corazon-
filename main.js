@@ -8,11 +8,32 @@
   const nameInput = document.getElementById('nameInput');
   const startBtn = document.getElementById('startBtn');
   const resetBtn = document.getElementById('resetBtn');
-  const uiTop = document.getElementById('uiTop');
+  const speedRange = document.getElementById('speedRange');
+  const music = document.getElementById('bgMusic');
+
+  // Sizes
+  let W = canvas.width;
+  let H = canvas.height;
+  let CX = W/2;
+  let CY = H/2;
 
   // Points
   let points = [];
-  const NUM_POINTS = 120;
+  const NUM_POINTS = 150;
+
+  function rand(min, max){ return Math.floor(Math.random()*(max-min+1))+min }
+  function hex(rgb){ return '#' + rgb.map(v => v.toString(16).padStart(2,'0')).join('') }
+
+  // Color interpolation helper
+  function lerp(a,b,t){ return Math.round(a + (b-a)*t); }
+  function mixColor(hexA, hexB, t){
+    const a = hexA.replace('#','');
+    const b = hexB.replace('#','');
+    const ar = parseInt(a.substr(0,2),16), ag = parseInt(a.substr(2,2),16), ab = parseInt(a.substr(4,2),16);
+    const br = parseInt(b.substr(0,2),16), bg = parseInt(b.substr(2,2),16), bb = parseInt(b.substr(4,2),16);
+    const r = lerp(ar,br,t), g = lerp(ag,bg,t), b2 = lerp(ab,bb,t);
+    return hex([r,g,b2]);
+  }
 
   // Heart pattern
   const heartPattern = [
@@ -33,65 +54,50 @@
     "              *              "
   ];
 
-  let heartContent = '';
-  let lines = [];
-  let letterI = 0, letterJ = 0;
-  let animating = false;
-  let growPhase = 0;
-  const SMALL = '#9a0f29';
-  const LARGE = '#cf1462';
-
-  // Responsive canvas
-  let W = canvas.width;
-  let H = canvas.height;
-  let CX = W / 2;
-  let CY = H / 2;
-
-  function rand(min, max){ return Math.floor(Math.random()*(max-min+1))+min; }
-  function hex(rgb){ return '#' + rgb.map(v => v.toString(16).padStart(2,'0')).join(''); }
-  function lerp(a,b,t){ return Math.round(a + (b-a)*t); }
-  function mixColor(hexA, hexB, t){
-    const a = hexA.replace('#','');
-    const b = hexB.replace('#','');
-    const ar = parseInt(a.substr(0,2),16), ag = parseInt(a.substr(2,2),16), ab = parseInt(a.substr(4,2),16);
-    const br = parseInt(b.substr(0,2),16), bg = parseInt(b.substr(2,2),16), bb = parseInt(b.substr(4,2),16);
-    const r = lerp(ar,br,t), g = lerp(ag,bg,t), b2 = lerp(ab,bb,t);
-    return hex([r,g,b2]);
-  }
-
   function nameHeart(name){
     name = name || 'corazon';
     name = (name.repeat(200)).slice(0,200);
     let idx = 0;
-    const arr = [];
+    const lines = [];
     for(const row of heartPattern){
       let line = '';
       for(const ch of row){
-        line += ch === '*' ? name[idx++ % name.length] : ' ';
+        if(ch === '*'){
+          line += name[idx % name.length];
+          idx++;
+        } else line += ' ';
       }
-      arr.push(line);
+      lines.push(line);
     }
-    return arr;
+    return lines;
   }
 
+  // Points initialization
   function initPoints(){
     points = [];
     for(let i=0;i<NUM_POINTS;i++){
       const x = Math.random()*W;
       const y = Math.random()*H;
       const size = Math.random()*2 + 1;
-      const color = Math.random() < 0.6 ? 'red' : 'white';
+      const color = Math.random() < 0.6 ? 'Blue' : 'white'; 
       points.push({
         x,y,size,color,
         visible: Math.random() < 0.7,
         timer: rand(0,20),
-        period: rand(6,30)
+        period: rand(40,90)
       });
     }
   }
 
-  function clear(){ ctx.clearRect(0,0,W,H); }
+  // Animation state
+  let heartContent = '';
+  let animating = false;
+  let lines = [];
+  let growPhase = 0;
+  const SMALL = '#9a0f29'; // pequeño
+  const LARGE = '#cf1462'; // grande
 
+  function clear(){ ctx.clearRect(0,0,W,H); }
   function drawPoints(){
     for(const p of points){
       p.timer--;
@@ -100,7 +106,7 @@
         p.timer = p.period;
       }
       if(p.visible){
-        ctx.fillStyle = (p.color === 'white') ? 'rgba(255,255,255,1)' : 'rgba(255,68,68,1)';
+        ctx.fillStyle = (p.color === 'white') ? 'rgba(255,255,255,1)' : 'rgba(17, 66, 172, 1)';
         ctx.fillRect(p.x, p.y, p.size, p.size);
       }
     }
@@ -115,7 +121,7 @@
     const linesArr = heartContent.split('\n');
     const lineHeight = fontSize * 0.85;
     const totalH = linesArr.length * lineHeight;
-    const startY = CY - totalH/2 + lineHeight/2;
+    let startY = CY - totalH/2 + lineHeight/2;
 
     ctx.fillStyle = color;
     for(let i=0;i<linesArr.length;i++){
@@ -129,7 +135,51 @@
     clear();
     drawPoints();
 
-    if(animating){
+    growPhase += 0.06;
+    const t = 0.5 + 0.5*Math.sin(growPhase);
+    const baseSize = Math.min(W,H)/65;
+    const amplitude = baseSize / 3;
+    const size = baseSize + amplitude * t;
+    const color = mixColor(SMALL, LARGE, t);
+
+    if(heartContent){
+      drawHeartText(color, size*2.2);
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  initPoints();
+  requestAnimationFrame(frame);
+
+  // Controls
+  enterBtn.addEventListener('click', () => {
+    // Ocultar texto y botón
+    enterBtn.style.display = 'none';
+    welcome.querySelector('h1').style.display = 'none';
+
+    welcome.classList.add('hidden');
+    heartSection.classList.remove('hidden');
+
+    // 🔊 Reproducir música al entrar
+    music.volume = 0.4;
+    music.play();
+  });
+
+  startBtn.addEventListener('click', () => {
+    const name = nameInput.value.trim();
+    if(!name) return;
+
+    // Ocultar inputs para mejor vista
+    document.getElementById('uiTop').style.display = 'none';
+
+    lines = nameHeart(name);
+    heartContent = '';
+    animating = true;
+
+    let letterI = 0, letterJ = 0;
+    const speed = 75; // ms entre cada letra
+    const interval = setInterval(() => {
       if(letterI < lines.length){
         if(letterJ === 0) heartContent += '\n';
         const row = lines[letterI];
@@ -140,72 +190,35 @@
           letterI++;
           letterJ = 0;
         }
+      } else {
+        clearInterval(interval);
       }
-    }
-
-    // Latido más lento
-    growPhase += 0.05;
-
-    const baseSize = Math.min(W,H) / 25;
-    const amplitude = baseSize / 2;
-    const size = baseSize + amplitude * (0.5 + 0.5*Math.sin(growPhase));
-    const color = mixColor(SMALL, LARGE, 0.5 + 0.5*Math.sin(growPhase));
-
-    if(heartContent){
-      drawHeartText(color, size);
-    }
-
-    requestAnimationFrame(frame);
-  }
-
-  // Controles
-  enterBtn.addEventListener('click', () => {
-    // Oculta el botón y el mensaje inmediatamente
-    enterBtn.style.display = 'none';
-    document.querySelector('#welcome h1').style.display = 'none';
-
-    // Oculta toda la sección welcome y muestra el corazón
-    welcome.classList.add('hidden');
-    heartSection.classList.remove('hidden');
-  });
-
-  startBtn.addEventListener('click', () => {
-    const name = nameInput.value.trim();
-    if(!name) return;
-
-    // Oculta los inputs y botón de crear corazón
-    uiTop.style.display = 'none';
-
-    lines = nameHeart(name);
-    heartContent = '';
-    letterI = 0; letterJ = 0;
-    animating = true;
+    }, speed);
   });
 
   resetBtn.addEventListener('click', () => {
+    music.currentTime = 0;
     initPoints();
     animating = false;
     heartContent = '';
     lines = [];
-    letterI = 0; letterJ = 0;
     growPhase = 0;
 
-    // Vuelve a mostrar los inputs para crear otro corazón
-    uiTop.style.display = 'flex';
+    // Mostrar inputs otra vez
+    document.getElementById('uiTop').style.display = 'flex';
+
+   
   });
 
   function resizeCanvas(){
-    W = window.innerWidth * 0.95;   
-    H = window.innerHeight * 0.7;   
+    W = Math.min(window.innerWidth - 40, 900);
+    H = Math.min(window.innerHeight - 120, 700);
     CX = W/2; CY = H/2;
     canvas.width = W;
     canvas.height = H;
   }
 
   window.addEventListener('resize', resizeCanvas);
-
-  initPoints();
   resizeCanvas();
-  requestAnimationFrame(frame);
 
 })();

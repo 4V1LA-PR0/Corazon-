@@ -1,8 +1,15 @@
+body{
+  margin:0;
+  padding:0;
+  background-color:#084363;
+  font-family:sans-serif;
+  color: #085f8e;
+}
 :root{
-  --bg:#000000;
-  --ui-bg: rgba(255,255,255,0.06);
+  --bg:#06133f;
+  --ui-bg: #0C2697;
   --text: #fff;
-  --accent: #cf1462;
+  --accent: #a5303c;
 }
 
 *{box-sizing:border-box}
