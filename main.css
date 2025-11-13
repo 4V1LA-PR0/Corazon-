@@ -8,13 +8,14 @@ body{
 :root{
   --bg:#06133f;
   --ui-bg: #0C2697;
-  --text: #fff;
-  --accent: #a5303c;
+  --text: #3c0b0b;
+  --accent: #790712;
+  --dark-color: #040214;
 }
 
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;background:var(--bg);font-family:Inter, system-ui, Arial, Helvetica, sans-serif;color:var(--text)}
-main{display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;padding:20px}
+main{position: relative;display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;padding:20px}
 
 /* Welcome */
 #welcome{display:flex;flex-direction:column;align-items:center;gap:18px}
@@ -31,3 +32,63 @@ button:active{transform:translateY(1px)}
 #controls{margin-top:10px;color:#ddd;display:flex;gap:12px;align-items:center}
 label{font-size:13px}
 input[type=range]{vertical-align:middle}
+
+
+.botones a:focus{
+    background-color: rgb(62, 73, 196);
+}
+
+.greetings {
+  font-size: 6rem;
+  font-weight: 900;
+  display: flex;
+  justify-content: center;
+  gap: 0.15em;
+  letter-spacing: 0.05em;
+}
+
+.greetings > span {
+  animation: glow 4s ease-in-out infinite;
+}
+
+/* Animación de brillo */
+@keyframes glow {
+  0%, 100% {
+    color: #7c1a1a;
+    text-shadow: 0 0 20px #ff0019, 0 0 40px #a71e1e, 0 0 60px #c47e7e;
+  }
+  50% {
+    color: #440303;
+    text-shadow: none;
+  }
+}
+
+/* Efecto secuencial */
+.greetings > span:nth-child(1) { animation-delay: 0s; }
+.greetings > span:nth-child(2) { animation-delay: 0.3s; }
+.greetings > span:nth-child(3) { animation-delay: 0.6s; }
+.greetings > span:nth-child(4) { animation-delay: 0.9s; }
+.greetings > span:nth-child(5) { animation-delay: 1.2s; } /* el espacio no se anima */
+.greetings > span:nth-child(6) { animation-delay: 1.5s; }
+.greetings > span:nth-child(7) { animation-delay: 1.8s; }
+
+.night {
+  position: fixed;
+  inset: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  height: 100%;
+  z-index: 0;                /* 0 (no negativo) para que se vea detrás del contenido */
+  pointer-events: none;
+  filter: blur(0.1vmin);
+  background-image:
+    radial-gradient(ellipse at top, transparent 0%, var(--dark-color)),
+    radial-gradient(ellipse at bottom, var(--dark-color), rgba(18, 19, 88, 0.2)),
+    repeating-linear-gradient(220deg, #000000 0px, #000000 19px, transparent 19px, transparent 22px),
+    repeating-linear-gradient(189deg, #000000 0px, #000000 19px, transparent 19px, transparent 22px),
+    repeating-linear-gradient(148deg, #0a0a0a 0px, #1d02a0 19px, transparent 19px, transparent 22px),
+    linear-gradient(90deg, rgb(255, 255, 255), rgb(255, 255, 255));
+  background-repeat: no-repeat;
+  background-size: cover;
+}

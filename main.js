@@ -4,16 +4,16 @@
   const welcome = document.getElementById('welcome');
   const heartSection = document.getElementById('heartSection');
   const canvas = document.getElementById('stage');
-  const ctx = canvas.getContext('2d', { alpha: true });
+  const ctx = canvas ? canvas.getContext('2d', { alpha: true }) : null;
   const nameInput = document.getElementById('nameInput');
   const startBtn = document.getElementById('startBtn');
   const resetBtn = document.getElementById('resetBtn');
   const speedRange = document.getElementById('speedRange');
   const music = document.getElementById('bgMusic');
 
-  // Sizes
-  let W = canvas.width;
-  let H = canvas.height;
+  // Sizes (si hay canvas)
+  let W = canvas ? canvas.width : 900;
+  let H = canvas ? canvas.height : 700;
   let CX = W/2;
   let CY = H/2;
 
@@ -79,7 +79,7 @@
       const x = Math.random()*W;
       const y = Math.random()*H;
       const size = Math.random()*2 + 1;
-      const color = Math.random() < 0.6 ? 'Blue' : 'white'; 
+      const color = Math.random() < 0.6 ? 'Blue' : 'white';
       points.push({
         x,y,size,color,
         visible: Math.random() < 0.7,
@@ -94,11 +94,12 @@
   let animating = false;
   let lines = [];
   let growPhase = 0;
-  const SMALL = '#9a0f29'; // pequeño
-  const LARGE = '#cf1462'; // grande
+  const SMALL = '#850707ff'; // pequeño
+  const LARGE = '#c31313ff'; // grande
 
-  function clear(){ ctx.clearRect(0,0,W,H); }
+  function clear(){ if (ctx) ctx.clearRect(0,0,W,H); }
   function drawPoints(){
+    if (!ctx) return;
     for(const p of points){
       p.timer--;
       if(p.timer <= 0){
@@ -106,13 +107,14 @@
         p.timer = p.period;
       }
       if(p.visible){
-        ctx.fillStyle = (p.color === 'white') ? 'rgba(255,255,255,1)' : 'rgba(17, 66, 172, 1)';
+        ctx.fillStyle = (p.color === 'white') ? 'rgba(255,255,255,1)' : 'rgba(13, 108, 232, 1)';
         ctx.fillRect(p.x, p.y, p.size, p.size);
       }
     }
   }
 
   function drawHeartText(color, fontSize){
+    if (!ctx) return;
     ctx.save();
     ctx.font = `${Math.round(fontSize)}px "Consolas", monospace`;
     ctx.textAlign = 'center';
@@ -152,70 +154,97 @@
   initPoints();
   requestAnimationFrame(frame);
 
-  // Controls
-  enterBtn.addEventListener('click', () => {
-    // Ocultar texto y botón
-    enterBtn.style.display = 'none';
-    welcome.querySelector('h1').style.display = 'none';
+  // Controls seguros (comprobaciones para evitar errores si falta algún elemento)
+  if (enterBtn) {
+    enterBtn.addEventListener('click', () => {
+      // Ocultar botón si existe
+      enterBtn.style.display = 'none';
 
-    welcome.classList.add('hidden');
-    heartSection.classList.remove('hidden');
-
-    // 🔊 Reproducir música al entrar
-    music.volume = 0.4;
-    music.play();
-  });
-
-  startBtn.addEventListener('click', () => {
-    const name = nameInput.value.trim();
-    if(!name) return;
-
-    // Ocultar inputs para mejor vista
-    document.getElementById('uiTop').style.display = 'none';
-
-    lines = nameHeart(name);
-    heartContent = '';
-    animating = true;
-
-    let letterI = 0, letterJ = 0;
-    const speed = 75; // ms entre cada letra
-    const interval = setInterval(() => {
-      if(letterI < lines.length){
-        if(letterJ === 0) heartContent += '\n';
-        const row = lines[letterI];
-        if(letterJ < row.length){
-          heartContent += row[letterJ];
-          letterJ++;
+      // Ocultar <h1> si existe, si no ocultar .greetings
+      if (welcome) {
+        const h1 = welcome.querySelector('h1');
+        if (h1) {
+          h1.style.display = 'none';
         } else {
-          letterI++;
-          letterJ = 0;
+          const greetings = welcome.querySelector('.greetings');
+          if (greetings) greetings.style.display = 'none';
         }
-      } else {
-        clearInterval(interval);
+        welcome.classList.add('hidden');
       }
-    }, speed);
-  });
 
-  resetBtn.addEventListener('click', () => {
-    music.currentTime = 0;
-    initPoints();
-    animating = false;
-    heartContent = '';
-    lines = [];
-    growPhase = 0;
+      if (heartSection) heartSection.classList.remove('hidden');
 
-    // Mostrar inputs otra vez
-    document.getElementById('uiTop').style.display = 'flex';
+      // Reproducir música de forma segura
+      if (music) {
+        try {
+          music.volume = 0.4;
+          const p = music.play();
+          if (p && typeof p.then === 'function') p.catch(() => {});
+        } catch (e) { /* reproducción bloqueada */ }
+      }
 
-   
-  });
+      console.log('Entrar clickeado');
+    });
+  } else {
+    console.warn('enterBtn no encontrado en DOM');
+  }
+
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      const name = nameInput ? nameInput.value.trim() : '';
+      if(!name) return;
+
+      // Ocultar inputs para mejor vista
+      const uiTop = document.getElementById('uiTop');
+      if (uiTop) uiTop.style.display = 'none';
+
+      lines = nameHeart(name);
+      heartContent = '';
+      animating = true;
+
+      let letterI = 0, letterJ = 0;
+      const speed = 75; // ms entre cada letra
+      const interval = setInterval(() => {
+        if(letterI < lines.length){
+          if(letterJ === 0) heartContent += '\n';
+          const row = lines[letterI];
+          if(letterJ < row.length){
+            heartContent += row[letterJ];
+            letterJ++;
+          } else {
+            letterI++;
+            letterJ = 0;
+          }
+        } else {
+          clearInterval(interval);
+        }
+      }, speed);
+    });
+  }
+
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (music) music.currentTime = 0;
+      initPoints();
+      animating = false;
+      heartContent = '';
+      lines = [];
+      growPhase = 0;
+
+      // Mostrar inputs otra vez
+      const uiTop = document.getElementById('uiTop');
+      if (uiTop) uiTop.style.display = 'flex';
+    });
+  }
 
   function resizeCanvas(){
     W = Math.min(window.innerWidth - 40, 900);
     H = Math.min(window.innerHeight - 120, 700);
     CX = W/2; CY = H/2;
-    canvas.width = W;
-    canvas.height = H;
+    if (canvas) {
+      canvas.width = W;
+      canvas.height = H;
+    }
   }
 
   window.addEventListener('resize', resizeCanvas);
