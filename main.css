@@ -18,7 +18,7 @@ body{
 html,body{
   height:100%;
   margin:0;
-  background:transparent;
+  background:var(--bg);
   font-family:Inter, system-ui, Arial, Helvetica, sans-serif;
   color:var(--text)
 }
@@ -137,7 +137,7 @@ input[type=range]{vertical-align:middle}
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  height: 100%;
+  height: 100vh;
   z-index: 0;                /* 0 (no negativo) para que se vea detrás del contenido */
   pointer-events: none;
   filter: blur(0.1vmin);
