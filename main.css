@@ -183,7 +183,7 @@ input[type=range]{vertical-align:middle}
 
 .planeta {
   position: fixed;
-  width: 90px;   /* Ajusta tamaño para celular */
+  width: 100px;   /* Ajusta tamaño para celular */
   height: 90px;
   pointer-events: none;
   z-index: 0;
@@ -191,14 +191,14 @@ input[type=range]{vertical-align:middle}
 
 /* Animaciones */
 #planeta1 {
-  top: 50%;
-  left: 10%;
+  top: 60%;
+  left: 20%;
   animation: flotar1 20s linear infinite;
 }
 
 #planeta2 {
-  top: 20%;
-  left: 80%;
+  top: 10%;
+  left: 60%;
   animation: flotar2 25s linear infinite;
 }
 
