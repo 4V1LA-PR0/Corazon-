@@ -203,7 +203,7 @@
       animating = true;
 
       let letterI = 0, letterJ = 0;
-      const speed = 75; // ms entre cada letra
+      const speed = 65; // ms entre cada letra
       const interval = setInterval(() => {
         if(letterI < lines.length){
           if(letterJ === 0) heartContent += '\n';

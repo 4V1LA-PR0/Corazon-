@@ -202,10 +202,22 @@ input[type=range]{vertical-align:middle}
   animation: flotar2 25s linear infinite;
 }
 
+#planeta3 {
+  top: 10%;
+  left: 80%;
+  animation: flotar3 22s linear infinite;
+}
+
 /* Movimiento suave arriba-abajo */
 @keyframes flotar1 {
   0% { transform: translateY(0px); }
   50% { transform: translateY(15px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes flotar2 {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
   100% { transform: translateY(0px); }
 }
 
